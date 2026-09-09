@@ -31,10 +31,6 @@ runs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Grant execute permission for gradlew
-      shell: bash
-      run: chmod +x ./gradlew
-
     # Кэш Gradle: configuration cache + build cache + ~/.gradle
     - name: Setup Gradle (cache)
       uses: gradle/actions/setup-gradle@v4
@@ -57,17 +53,3 @@ runs:
         fi
         echo "::endgroup::"
         echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-
-    # ── Страховка от конфликтов метаданных: офлайн-проверка графа зависимостей ──
-    - name: Dependency graph sanity (failOnVersionConflict)
-      shell: bash
-      run: ./gradlew --no-daemon :app:dependencies --configuration debugRuntimeClasspath --quiet > build/dep-graph.txt || true
-
-    - name: Upload dependency graph
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: dependency-graph
-        path: build/dep-graph.txt
-        retention-days: 7
-        if-no-files-found: ignore
