@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Конфигурация Android Lint для всех модулей SilverChat.
+
+  Подключается из build-logic/convention/src/main/kotlin/AndroidConfig.kt
+  через `lintConfig = rootProject.file("config/lint/lint.xml")`.
+
+  ── Принцип: ошибки блокируют, предупреждения информируют ────────────────
+  В AGP включено `abortOnError = true` и выключено `warningsAsErrors`.
+  Поэтому здесь явно подняты до severity="error" те проверки, провал которых
+  означает реальную поломку приложения, а шум — наоборот, понижен или
+  отключён. Список читается как договорённость команды, а не как «всё
+  подряд», поэтому его можно пересматривать построчно.
+
+  ── Почему нет lint-baseline.xml ─────────────────────────────────────────
+  Базлайн замораживает текущие проблемы и незаметно накапливает новые.
+  Вместо него шум отсеян здесь, явно и с обоснованием по каждому пункту.
+-->
+<lint>
+
+    <!-- ================================================================= -->
+    <!-- ПОДНЯТО ДО ОШИБКИ: провал означает неработающее приложение          -->
+    <!-- ================================================================= -->
+
+    <!-- Вызов API, которого нет на minSdk 26 → падение на старых устройствах.
+         Самая частая причина крашей, которые не ловит ни компилятор, ни тесты. -->
+    <issue id="NewApi" severity="error" />
+
+    <!-- Обращение к API, помеченному как Restricted → UndefinedBehavior
+         в рантайме и снятие с публикации в Play. -->
+    <issue id="RestrictedApi" severity="error" />
+
+    <!-- Использование Experimental-API без opt-in: собирается, но ломается
+         при обновлении библиотеки. -->
+    <issue id="UnsafeOptInUsageError" severity="error" />
+
+    <!-- Доступ к камере/микрофону/геолокации без объявленного разрешения —
+         молчаливый отказ. Для мессенджера со звонками и «кружками» критично. -->
+    <issue id="MissingPermission" severity="error" />
+
+    <!-- Форматирование строк: несоответствие числа аргументов и плейсхолдеров
+         даёт краш ровно в тот момент, когда строка показывается пользователю. -->
+    <issue id="StringFormatInvalid" severity="error" />
+    <issue id="StringFormatMatches" severity="error" />
+    <issue id="StringFormatCount" severity="error" />
+    <issue id="PluralsCandidate" severity="warning" />
+
+    <!-- Некорректный intent-filter или отсутствующий exported у компонента
+         с фильтром: на Android 12+ это ошибка установки, а не предупреждение. -->
+    <issue id="ExportedReceiver" severity="error" />
+    <issue id="ExportedService" severity="error" />
+    <issue id="IntentFilterExportedReceiver" severity="error" />
+    <issue id="ProtectedPermissions" severity="error" />
+
+    <!-- Использование устаревшего API. Компилятор Kotlin даёт на это только
+         предупреждение, поэтому без повышения до ошибки вызов вроде
+         `queryIntentActivities(intent, 0)` пережил бы ревью и сломался при
+         следующем обновлении целевого SDK. Пример ветвления по версии —
+         MainActivity.resolveCameraPackages. -->
+    <issue id="Deprecation" severity="error" />
+
+    <!-- Расхождение версий support/androidx в графе зависимостей. -->
+    <issue id="GradleCompatible" severity="error" />
+
+    <!-- Проблемы упаковки APK/AAB, из-за которых сборка падает на финальном шаге. -->
+    <issue id="DuplicatePlatformClasses" severity="error" />
+    <issue id="PackagedPrivateKey" severity="error" />
+
+    <!-- ================================================================= -->
+    <!-- ОТКЛЮЧЕНО: шум, не связанный с качеством кода                      -->
+    <!-- ================================================================= -->
+
+    <!-- «Доступна более новая версия библиотеки». Срабатывает на КАЖДОЙ
+         сборке после любого релиза AndroidX и не говорит ничего о коде.
+         Обновлением версий занимается отдельный процесс (Renovate/Dependabot),
+         а не lint. -->
+    <issue id="GradleDependency" severity="ignore" />
+
+    <!-- Приложение существует только на русском: `values/` — единственная
+         локаль, переводить некуда. -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="ExtraTranslation" severity="ignore" />
+    <issue id="TypographyEllipsis" severity="ignore" />
+    <issue id="TypographyQuotes" severity="ignore" />
+
+    <!-- Иконки поставляются как адаптивные (mipmap-anydpi-v26) и векторные;
+         требования к плотностям из эпохи PNG не применяются. -->
+    <issue id="IconMissingDensityFolder" severity="ignore" />
+    <issue id="IconLocation" severity="ignore" />
+    <issue id="IconDensities" severity="ignore" />
+    <issue id="IconDuplicates" severity="ignore" />
+
+    <!-- Устаревшие проверки, которые приносят сторонние библиотеки; их
+         невозможно исправить в нашем коде. -->
+    <issue id="ObsoleteLintCustomCheck" severity="ignore" />
+    <issue id="ObsoleteSdkInt" severity="ignore" />
+
+    <!-- Нужно только для Java-interop. Проект целиком на Kotlin, где
+         nullability выражена типами, а аннотации избыточны. -->
+    <issue id="UnknownNullness" severity="ignore" />
+
+    <!-- Рекомендации по микрооптимизациям, которые R8 выполняет сам и которые
+         в Compose-проекте не применимы (нет XML-разметки). -->
+    <issue id="UseCompoundDrawables" severity="ignore" />
+    <issue id="SyntheticAccessor" severity="ignore" />
+    <issue id="FieldGetter" severity="ignore" />
+    <issue id="UnusedIds" severity="ignore" />
+    <issue id="GoogleAppIndexingWarning" severity="ignore" />
+
+    <!-- ================================================================= -->
+    <!-- ОСТАВЛЕНО ПРЕДУПРЕЖДЕНИЕМ: полезно видеть, но сборку не блокирует   -->
+    <!-- ================================================================= -->
+
+    <!-- Неиспользуемые ресурсы. Проект держит их в чистоте (в strings.xml
+         только реально используемые строки), но требование мгновенно чинить
+         каждую находку мешает промежуточным коммитам. -->
+    <issue id="UnusedResources" severity="warning" />
+
+    <!-- Compose-специфичные проверки: recomposition и побочные эффекты.
+         Полезны в отчёте, но часто срабатывают на намеренных паттернах. -->
+    <issue id="ComposeCompositionLocalUsage" severity="warning" />
+    <issue id="ComposeNamingLowercase" severity="warning" />
+    <issue id="ComposeMutableParameters" severity="warning" />
+    <issue id="ComposeUnstableCollections" severity="warning" />
+    <issue id="ComposeLambdaParameterOrder" severity="warning" />
+
+    <!-- Безопасность и приватность: держать на виду, разбирать по факту. -->
+    <issue id="TrustAllX509TrustManager" severity="error" />
+    <issue id="InsecureBaseConfiguration" severity="warning" />
+    <issue id="SetJavaScriptEnabled" severity="warning" />
+    <issue id="AllowBackup" severity="warning" />
+    <issue id="TrulyRandom" severity="warning" />
+
+    <!-- ================================================================= -->
+    <!-- Область действия                                                    -->
+    <!-- ================================================================= -->
+
+    <!-- Сгенерированные KSP/Hilt/Room источники не наши: их стиль и
+         «проблемы» мы исправить не можем, а шум от них постоянен. -->
+    <issue id="all">
+        <ignore path="**/build/generated/**" />
+        <ignore path="**/build/tmp/**" />
+        <ignore path="**/build/intermediates/**" />
+    </issue>
+
+</lint>

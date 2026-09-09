@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.cxx/
+captures/
+.externalNativeBuild/
+release/
+*.keystore
+!debug.keystore
+
+# Kotlin
+.kotlin/
+
+# Секреты — НИКОГДА не коммитим
+secrets.properties
+google-services.json
+fastlane/report.xml
+fastlane/Preview.html
+*.jks
+
+# OS
+.DS_Store
+Thumbs.db

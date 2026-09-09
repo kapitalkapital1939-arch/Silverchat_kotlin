@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ночная тема оболочки: тёмный родитель и тёмный фон окна. -->
+<resources>
+    <style name="Theme.SilverChat" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/sc_window_background</item>
+    </style>
+
+    <style name="Theme.SilverChat.Startup" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/sc_splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.SilverChat</item>
+    </style>
+</resources>

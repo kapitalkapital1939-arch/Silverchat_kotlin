@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Передний план адаптивной иконки: «серебряный» пузырь диалога.
+
+  Холст 108×108dp, но система применяет маску и обрезает края, поэтому
+  рисунок вписан в центральные ~66dp — за пределами этой зоны иконка
+  будет обрезана на круглых и каплевидных масках.
+
+  Вектор, а не растр: одна плотность на все dpi, и масштабирование не
+  размывает края на 4K-экранах.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Пузырь сообщения с «хвостом» слева внизу -->
+    <path
+        android:fillColor="#E8EDF5"
+        android:pathData="M40,32 H68 A12,12 0 0 1 80,44 V58 A12,12 0 0 1 68,70 H52 L40,82 V70 A12,12 0 0 1 28,58 V44 A12,12 0 0 1 40,32 Z" />
+
+    <!-- Три точки: «собеседник печатает» — узнаваемый образ мессенджера -->
+    <path
+        android:fillColor="#2A3550"
+        android:pathData="M44,47.5 a3.5,3.5 0 1 0 0,7 a3.5,3.5 0 1 0 0,-7 Z" />
+    <path
+        android:fillColor="#2A3550"
+        android:pathData="M54,47.5 a3.5,3.5 0 1 0 0,7 a3.5,3.5 0 1 0 0,-7 Z" />
+    <path
+        android:fillColor="#2A3550"
+        android:pathData="M64,47.5 a3.5,3.5 0 1 0 0,7 a3.5,3.5 0 1 0 0,-7 Z" />
+</vector>

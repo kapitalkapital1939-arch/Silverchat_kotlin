@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SilverChat — манифест приложения.
+
+  Единственный манифест в проекте: библиотеки (:core:*, :feature:*) своих
+  манифестов не имеют, поэтому все разрешения и компоненты объявлены здесь.
+  Это сделано намеренно — список разрешений мессенджера должен читаться
+  целиком в одном файле, а не собираться по девятнадцати модулям.
+
+  Каждое разрешение ниже обосновано конкретной функцией из ТЗ; «на всякий
+  случай» не добавлено ничего.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ── Сеть: REST + WSS + загрузка медиа ───────────────────────────── -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Индикатор «нет соединения» и переподключение WebSocket после
+         возврата из авиа-режима: без проверки состояния сети клиент
+         пытался бы слать в пустоту до первого таймаута. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- ── Уведомления: сообщения, входящий звонок, маркет, админка ────── -->
+    <!-- API 33+: уведомление показывается только после явного разрешения. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Звонок обязан дозвониться при заблокированном экране. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- ── Звонки (WebRTC) ─────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Переключение между динамиком, наушниками и Bluetooth во время звонка. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- ── Передний план: активный звонок, загрузка файла, запись ──────── -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+
+    <!-- ── Медиа: фото/видео/голосовые/файлы, анимированные аватары ────── -->
+    <!-- API 33+: гранулярные разрешения вместо READ_EXTERNAL_STORAGE. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Photo Picker («Выбрать из галереи») разрешения не требует вообще:
+         система отдаёт URI разовым грантом. Это основной путь выбора медиа,
+         а READ_MEDIA_* нужны лишь для прямого обхода галереи. -->
+
+    <!-- ── Блокировка приложения (App Lock) ────────────────────────────── -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!-- Камера нужна только для звонков и «кружков»: на устройстве без неё
+         приложение обязано работать (текстовые чаты, маркет, сторис). -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <application
+        android:name=".SilverChatApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="false"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SilverChat.Startup"
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="36">
+
+        <!--
+          allowBackup="false" — принципиально.
+          В приложении хранятся access/refresh-токены (EncryptedSharedPreferences),
+          PIN блокировки и кэш переписки. Резервная копия перенесла бы их на
+          другое устройство, где ключ Android Keystore недоступен: данные всё
+          равно не прочитались бы, а сам факт выноса токенов из песочницы —
+          уже инцидент.
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|layoutDirection|locale"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.SilverChat.Startup"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- Точка входа -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+              Публичные deep link. Один фильтр со схемой без хоста покрывает
+              все маршруты сразу:
+                silverchat://u/{username}   — карточка пользователя
+                silverchat://c/{username}   — канал или чат
+                silverchat://join/{token}   — вход по пригласительной ссылке
+                silverchat://market/{id}    — лот маркета юзернеймов
+                silverchat://call/{callId}  — звонок из уведомления
+              Конкретный шаблон сопоставляет NavController (navDeepLink в
+              FeatureNavigation), а не манифест — иначе список хостов пришлось
+              бы дублировать в двух местах и синхронизировать вручную.
+            -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="silverchat" />
+            </intent-filter>
+
+            <!--
+              Действия уведомлений из :core:notifications
+              (com.silverchat.notification.OPEN_APP / OPEN_CHAT / OPEN_CALL / …).
+              PendingIntent там создаётся явным (Intent(context, MainActivity)),
+              поэтому фильтр не обязателен, но объявлен: он делает действия
+              видимыми в манифесте и позволяет отправить их из adb при отладке.
+            -->
+            <intent-filter>
+                <action android:name="com.silverchat.notification.OPEN_APP" />
+                <action android:name="com.silverchat.notification.OPEN_CHAT" />
+                <action android:name="com.silverchat.notification.OPEN_CALL" />
+                <action android:name="com.silverchat.notification.ACCEPT_CALL" />
+                <action android:name="com.silverchat.notification.DECLINE_CALL" />
+                <action android:name="com.silverchat.notification.OPEN_MARKET" />
+                <action android:name="com.silverchat.notification.OPEN_ADMIN" />
+                <action android:name="com.silverchat.notification.REPLY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          FileProvider нужен для съёмки: камере передаётся URI на файл в кэше,
+          а не путь (FileUriExposedException с API 24). Через него же пишется
+          видео «кружка».
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
+          Ресивер прямых ответов из уведомления (RemoteInput) объявляется
+          здесь, а не в :core:notifications: модуль не должен знать классы
+          приложения, а :app — единственный, кто видит оба.
+        -->
+        <receiver
+            android:name=".notification.ReplyReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.silverchat.action.REPLY" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Адаптивная иконка приложения.
+
+  minSdk = 26, поэтому каталога mipmap-anydpi (без -v26) и растровых
+  вариантов для mdpi…xxxhdpi не нужно: адаптивные иконки поддерживаются
+  с Android 8.0, то есть на всех устройствах, где ставится SilverChat.
+
+  <monochrome> — слой для тематических иконок Android 13+: система
+  перекрашивает его в цвет обоев, поэтому отдельный арт не требуется.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

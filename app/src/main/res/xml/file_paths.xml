@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Каталоги, которые FileProvider разрешает отдавать наружу по content:// URI.
+
+  Ограничен каталогом кэша намеренно:
+   • съемка и запись «кружка» пишут во временный файл, который сразу уходит
+     на сервер и затем удаляется — хранить его в публичном каталоге нельзя;
+   • file:// URI с API 24 бросает FileUriExposedException, поэтому камере
+     передаётся именно content:// от этого провайдера.
+
+  Каждый путь должен совпадать с каталогом, в который реально пишет
+  ActivityCaptureGateway (см. каталог CAPTURE_DIR_NAME).
+-->
+<paths>
+    <!-- cacheDir/captures — фото с камеры и видео «кружка» -->
+    <cache-path
+        name="captures"
+        path="captures/" />
+
+    <!-- cacheDir/media — сжатые перед отправкой копии -->
+    <cache-path
+        name="media"
+        path="media/" />
+</paths>

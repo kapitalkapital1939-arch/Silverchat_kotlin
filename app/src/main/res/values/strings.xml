@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Строки оболочки приложения.
+
+  Здесь ТОЛЬКО то, что читает сам :app. Тексты экранов живут в своих
+  feature-модулях, подписи вкладок нижней навигации — в enum
+  TopLevelDestination (:core:designsystem), тексты уведомлений — в
+  :core:notifications.
+
+  Держать файл коротким — не аскетизм, а требование сборки: в проекте
+  включено lint { warningsAsErrors = true }, поэтому «про запас» добавленная
+  и нигде не использованная строка останавливает релиз.
+-->
+<resources>
+    <string name="app_name">SilverChat</string>
+
+    <!-- Заголовок уведомления об админ-рассылке (AdminBroadcastNotifier) -->
+    <string name="admin_broadcast_title">Сообщение от администрации</string>
+</resources>

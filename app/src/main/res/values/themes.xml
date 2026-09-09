@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Темы оболочки.
+
+  Две темы, а не одна:
+   • Theme.SilverChat.Startup — применяется в манифесте. Родитель
+     Theme.SplashScreen (androidx.core:core-splashscreen) рисует системный
+     splash и по его завершении переключается на postSplashScreenTheme.
+   • Theme.SilverChat — тема самого окна. Compose рисует всё содержимое,
+     поэтому от неё нужен только корректный windowBackground и отсутствие
+     ActionBar.
+
+  Родитель — фреймворковый (android:Theme.Material.Light.NoActionBar), а не
+  Theme.Material3.*: материал-компоненты для XML-разметки потребовали бы
+  зависимость com.google.android.material, которая в проекте не используется —
+  весь UI на Jetpack Compose.
+
+  Цвета статус-панели и панели навигации здесь НЕ задаются: с targetSdk 36
+  приложение обязано быть edge-to-edge, а прозрачность системных полос
+  выставляет enableEdgeToEdge() в MainActivity. Дублирование в теме привело
+  бы к конфликту и к непрозрачной полосе на API 35+.
+-->
+<resources>
+    <style name="Theme.SilverChat" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sc_window_background</item>
+    </style>
+
+    <style name="Theme.SilverChat.Startup" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/sc_splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.SilverChat</item>
+    </style>
+</resources>

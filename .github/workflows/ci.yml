@@ -1,0 +1,185 @@
+name: CI
+
+# Полная автономия сборки: никаких внешних сервисов, никаких секретов для PR.
+# Всё, что нужно (JDK, SDK, зависимости), ставится на раннер из compose-экшена.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.daemon=false
+    -Dorg.gradle.parallel=true
+    -Dorg.gradle.caching=true
+    -Dkotlin.incremental=false
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Version Catalog consistency
+        run: |
+          # Запрет строчных версий в build-скриптах модулей — только libs.*
+          if grep -rnE '"[0-9]+\.[0-9]+\.[0-9]+[^"]*"' --include=build.gradle.kts app core feature | \
+             grep -v 'libs.versions.toml'; then
+            echo "::error::Найдена хардкод-версия в build.gradle.kts. Используйте Version Catalog."
+            exit 1
+          fi
+          echo "OK: все версии централизованы в gradle/libs.versions.toml"
+
+      # Три независимых прогона, а не один: у каждого своя цена отказа и свой
+      # способ починки. Объединение в одну команду скрывало бы, что именно
+      # упало — форматирование, Android-проверки или анализ сложности.
+
+      - name: Ktlint (блокирующий)
+        # Любое расхождение чинится одной командой: ./gradlew ktlintFormat
+        run: ./gradlew --stacktrace ktlintCheck
+
+      - name: Android Lint (блокирующий по severity=error)
+        # Список блокирующих проверок: config/lint/lint.xml
+        run: ./gradlew --stacktrace lintDebug
+
+      - name: Detekt (отчёт)
+        # Не блокирует до снятия baseline — см. config/detekt/detekt.yml
+        # и раздел «Первый прогон CI» в README.md
+        run: ./gradlew --stacktrace detekt
+        continue-on-error: true
+
+      - name: Upload static analysis reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-reports
+          path: |
+            **/build/reports/ktlint/**/*.txt
+            **/build/reports/detekt/detekt.*
+            **/build/reports/lint-results-*.html
+            **/build/reports/lint-results-*.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: static-analysis
+    strategy:
+      fail-fast: false
+      matrix:
+        module-group: [ 'core', 'feature', 'app' ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Assemble & test :${{ matrix.module-group }}:*
+        run: |
+          case "${{ matrix.module-group }}" in
+            core)    TARGETS=$(./gradlew -q projects | grep -oE ':core:[a-z-]+' | tr '\n' ' ') ;;
+            feature) TARGETS=$(./gradlew -q projects | grep -oE ':feature:[a-z-]+' | tr '\n' ' ') ;;
+            app)     TARGETS=":app" ;;
+          esac
+          TASKS=""
+          for m in $TARGETS; do TASKS="$TASKS ${m}:assembleDebug ${m}:testDebugUnitTest"; done
+          ./gradlew --stacktrace --continue $TASKS
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.module-group }}
+          path: '**/build/reports/tests/'
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ──────────────────────────────────────────────────────────────────────────
+  assemble-release:
+    name: Release APK/AAB (unsigned if no secrets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Android build environment
+        uses: ./.github/actions/setup-android-build
+
+      - name: Inject signing config (optional)
+        env:
+          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          CERT_PINS: ${{ secrets.CERT_PINS }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > release.keystore
+            {
+              echo "silverchat.keystorePath=release.keystore"
+              echo "silverchat.keystorePassword=$KEYSTORE_PASSWORD"
+              echo "silverchat.keyAlias=$KEY_ALIAS"
+              echo "silverchat.keyPassword=$KEY_PASSWORD"
+            } >> gradle.properties
+            echo "SIGNING_ENABLED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Секреты подписи не заданы — собираем unsigned release"
+            echo "SIGNING_ENABLED=false" >> "$GITHUB_ENV"
+          fi
+
+          # Пиннинг сертификатов — отдельно от подписи: он нужен и в unsigned
+          # сборке, потому что проверяет канал, а не авторство артефакта.
+          # Формат: "sha256/<base64>,sha256/<base64>" (основной + резервный ключ).
+          if [ -n "$CERT_PINS" ]; then
+            echo "silverchat.certPins=$CERT_PINS" >> gradle.properties
+            echo "CERT_PINNING_ENABLED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::CERT_PINS не заданы — release собирается БЕЗ пиннинга сертификатов"
+            echo "CERT_PINNING_ENABLED=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build release bundle
+        run: ./gradlew --stacktrace :app:bundleRelease :app:assembleRelease
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: silverchat-release-${{ github.sha }}
+          path: |
+            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+
+  # ──────────────────────────────────────────────────────────────────────────
+  summary:
+    name: CI summary
+    runs-on: ubuntu-latest
+    needs: [ static-analysis, build, assemble-release ]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.build.result }}" != "success" ]; then exit 1; fi
+          echo "✅ CI зелёный"

@@ -1,0 +1,59 @@
+# Единые правила оформления для ktlint и IntelliJ/Android Studio.
+#
+# Файл обязателен: ktlint читает стиль и лимиты ТОЛЬКО отсюда, а не из
+# build-скриптов. Без него каждый разработчик получил бы свои настройки IDE,
+# и `ktlintCheck` в CI падал бы на расхождениях форматирования.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+# 140, а не 100 (Android-умолчание) и не 120: в проекте много кириллических
+# KDoc-комментариев, а Compose-вызовы глубоко вложенные. На 100 символах
+# каждая вторая строка разбивалась бы механически, ухудшая читаемость.
+# Измерено по кодовой базе: максимум — 140 символов, нарушений нет.
+max_line_length = 140
+
+[*.kt]
+# android_studio, а не intellij_idea: отличается порядком импортов. Стиль
+# Android Studio сортирует все импорты единым лексикографическим блоком,
+# intellij_idea уносит java./javax./kotlin. в конец. Код проекта написан
+# в первом варианте — он и зафиксирован.
+ktlint_code_style = android_studio
+ij_kotlin_imports_layout = *
+
+# Хвостовые запятые разрешены (но не обязательны в этом стиле): они делают
+# diff на одну строку при добавлении параметра, а не на две.
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Compose-экраны — это декларативное дерево, а не «функция» в классическом
+# смысле: имя с заглавной буквы здесь соглашение фреймворка, а не нарушение.
+# Правило не умеет отличать @Composable от обычной функции, поэтому отключено.
+ktlint_standard_function-naming = disabled
+
+# Верхнеуровневые константы дизайн-системы осознанно пишутся в PascalCase
+# (GiftCategoryLuxury), потому что это значения-экземпляры, а не скаляры.
+ktlint_standard_property-naming = disabled
+
+[*.kts]
+ktlint_code_style = android_studio
+ij_kotlin_imports_layout = *
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{json,json5}]
+indent_size = 2
+
+[*.xml]
+indent_size = 4
+
+[*.md]
+# В markdown два пробела в конце строки — это перенос строки, а не мусор.
+trim_trailing_whitespace = false

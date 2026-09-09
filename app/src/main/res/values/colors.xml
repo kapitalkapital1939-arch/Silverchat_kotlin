@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Цвета оболочки. Палитра экранов задаётся в :core:designsystem (ScColors)
+  и управляется настройками темы; здесь — только то, что рисует система ДО
+  первой композиции: фон окна и фон splash-экрана.
+
+  Значения соответствуют LightScColors.background, иначе на старте виден
+  цветной «мигающий» кадр между splash и первым экраном.
+-->
+<resources>
+    <color name="sc_window_background">#F4F6FB</color>
+    <color name="sc_splash_background">#F4F6FB</color>
+
+    <!-- Фон адаптивной иконки: тёмный сине-графитовый, «серебро» на нём читается -->
+    <color name="ic_launcher_background">#1B2436</color>
+</resources>

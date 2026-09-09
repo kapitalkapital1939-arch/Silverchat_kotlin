@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ночной вариант: соответствует DarkScColors.background из :core:designsystem. -->
+<resources>
+    <color name="sc_window_background">#0E1117</color>
+    <color name="sc_splash_background">#0E1117</color>
+
+    <color name="ic_launcher_background">#1B2436</color>
+</resources>

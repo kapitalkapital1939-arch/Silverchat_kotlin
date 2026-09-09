@@ -1,0 +1,236 @@
+# Конфигурация detekt для SilverChat.
+#
+# Подключается из build-logic/convention/src/main/kotlin/silverchat.quality.gradle.kts
+# вместе с `buildUponDefaultConfig = true`, поэтому здесь перечислены ТОЛЬКО
+# отклонения от стандартного конфига detekt. Всё неупомянутое остаётся как
+# в поставке.
+#
+# ── Откуда взялись числа ──────────────────────────────────────────────────
+# Пороги сложности не выдуманы, а измерены по фактической кодовой базе
+# (207 файлов Kotlin, ~49 300 строк). Каждое значение — текущий максимум
+# плюс небольшой запас. Смысл в «трещотке»: порог фиксирует худшее место
+# сегодня и не даёт стать ещё хуже, а по мере рефакторинга его понижают.
+# Начинать с жёстких значений означало бы получить сотни срабатываний на
+# первом же прогоне и отключить анализ навсегда.
+#
+# Измерено:
+#   самая длинная функция          225 строк  (MarketScreen, @Composable)
+#   максимум параметров            18         (core:testing TestFixtures)
+#   максимум функций в файле       148        (SilverChatApi — интерфейс REST)
+#   максимальная длина строки      140        (совпадает с .editorconfig)
+
+config:
+  # Проверка схемы конфига отключена ОСОЗНАННО.
+  #
+  # Проект использует detekt 2.0.0-alpha.6: в альфа-ветке состав и имена
+  # правил ещё меняются между релизами. С включённой валидацией переименование
+  # правила в очередной alpha уронило бы CI сообщением «свойство не найдено»,
+  # хотя в самом коде проблем нет. Как только проект перейдёт на стабильный
+  # detekt 2.0, этот флаг нужно вернуть в true.
+  validation: false
+  warningsAsErrors: false
+
+# ---------------------------------------------------------------------------
+# Сложность
+# ---------------------------------------------------------------------------
+complexity:
+  LongMethod:
+    active: true
+    # Compose-экран — декларативное дерево: 200 строк разметки читаются легче,
+    # чем 60 строк императивного кода, потому что вложенность здесь структурна.
+    ignoreAnnotated: ['Composable']
+    threshold: 80
+
+  LongParameterList:
+    active: true
+    ignoreAnnotated: ['Composable']
+    # 20 = измеренный максимум (18 в тестовых фикстурах) + запас.
+    # Фикстуры намеренно принимают все поля: они заменяют конструктор в тестах.
+    functionThreshold: 20
+    constructorThreshold: 14
+    ignoreDefaultParameters: true
+
+  TooManyFunctions:
+    active: true
+    ignoreAnnotated: ['Composable']
+    # SilverChatApi — это 148 объявлений REST-эндпоинтов в одном интерфейсе.
+    # Разбивать его на несколько файлов означало бы потерять единую точку,
+    # где виден весь контракт с бэкендом.
+    thresholdInFiles: 160
+    thresholdInClasses: 160
+    thresholdInInterfaces: 160
+    thresholdInObjects: 60
+    thresholdInEnums: 30
+    ignoreDeprecated: true
+    ignorePrivate: false
+
+  CyclomaticComplexMethod:
+    active: true
+    ignoreAnnotated: ['Composable']
+    threshold: 30
+
+  NestedBlockDepth:
+    active: true
+    # Compose-дерево даёт +1 к глубине на каждый уровень разметки, поэтому
+    # порог выше обычного: иначе любое вложенное Card/Row/Column — нарушение.
+    threshold: 8
+
+  LargeClass:
+    active: true
+    threshold: 700
+
+# ---------------------------------------------------------------------------
+# Стиль
+# ---------------------------------------------------------------------------
+style:
+  MaxLineLength:
+    active: true
+    # Должно совпадать с max_line_length в .editorconfig (ktlint), иначе два
+    # анализатора начнут спорить об одном и том же.
+    maxLineLength: 140
+    excludeCommentStatements: true
+    excludeRawStrings: true
+
+  MagicNumber:
+    # Отключено: в Compose-коде числа — это размеры, отступы и прозрачности,
+    # они самодокументируемы на месте использования. Значимые константы
+    # (лимиты, таймауты, пороги экономики) уже вынесены в companion object.
+    active: false
+
+  ReturnCount:
+    active: true
+    # Ранние возвраты при валидации — основной паттерн репозиториев:
+    # `if (имя пусто) return Failure(...)` перед каждым следующим шагом.
+    max: 6
+    excludeGuardClauses: true
+    excludeReturnFromLambda: true
+
+  ThrowsCount:
+    active: true
+    max: 3
+
+  DestructuringDeclarationWithTooManyEntries:
+    active: true
+    maxDestructuringEntries: 5
+
+  # Проект намеренно не использует исключения для потока управления: все
+  # операции возвращают ScResult. Единственный `throw` — проброс
+  # CancellationException, который глотать нельзя.
+  ForbiddenMethodCall:
+    active: true
+    methods:
+      - 'kotlin.io.println'
+      - 'kotlin.io.print'
+
+  WildcardImport:
+    active: true
+    # Пакетных импортов в проекте нет (проверено), исключений не нужно.
+    excludeImports: []
+
+# ---------------------------------------------------------------------------
+# Исключения
+# ---------------------------------------------------------------------------
+exceptions:
+  TooGenericExceptionCaught:
+    # Отключено осознанно. Репозитории и WebSocket-слой ловят Exception на
+    # границе с внешним миром и нормализуют его в ScError — иначе любое
+    # падение OkHttp, Room или кодека уронило бы приложение. Узкие catch
+    # здесь невозможны в принципе: набор исключений библиотек не документирован.
+    active: false
+
+  SwallowedException:
+    active: false
+
+  ExceptionRaisedInUnexpectedLocation:
+    active: true
+
+  RethrowCaughtExceptionUsage:
+    active: true
+
+  InstanceOfCheckForException:
+    active: true
+
+# ---------------------------------------------------------------------------
+# Именование
+# ---------------------------------------------------------------------------
+naming:
+  FunctionNaming:
+    active: true
+    # Двойная защита: `ignoreAnnotated` на случай, если detekt не распознает
+    # аннотацию, и разрешающий паттерн, допускающий заглавную первую букву.
+    # 394 Composable-функции проекта начинаются с заглавной по правилам
+    # Compose — это не нарушение, а требование фреймворка.
+    ignoreAnnotated: ['Composable']
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+
+  TopLevelPropertyNaming:
+    active: true
+    # Значения дизайн-системы (GiftCategoryLuxury, UsernameCategoryToGift) —
+    # именованные экземпляры, а не скалярные константы, поэтому PascalCase.
+    constantPattern: '[A-Za-z][_A-Za-z0-9]*'
+    propertyPattern: '[A-Za-z][_A-Za-z0-9]*'
+    privatePropertyPattern: '[A-Za-z][_A-Za-z0-9]*'
+
+  ObjectPropertyNaming:
+    active: true
+    constantPattern: '[A-Za-z_][A-Za-z0-9_]*'
+    propertyPattern: '[A-Za-z_][A-Za-z0-9_]*'
+    privatePropertyPattern: '[A-Za-z_][A-Za-z0-9_]*'
+
+  EnumNaming:
+    active: true
+    # SCREAMING_SNAKE (TopLevelDestination.CHATS) и PascalCase (SyncPhase.IDLE)
+    # — оба варианта встречаются, паттерн допускает и то и другое.
+    enumEntryPattern: '[A-Z][A-Za-z0-9_]*'
+
+  ClassNaming:
+    active: true
+    classPattern: '[A-Z][a-zA-Z0-9]*'
+
+  PackageNaming:
+    active: true
+    packagePattern: '[a-z]+(\.[a-z][a-z0-9]*)*'
+
+# ---------------------------------------------------------------------------
+# Комментарии
+# ---------------------------------------------------------------------------
+comments:
+  # Документация приватных реализаций — часть принятого в проекте стиля:
+  # KDoc объясняет ПОЧЕМУ, а не ЧТО. Правила ниже по умолчанию активны в
+  # некоторых версиях detekt и штрафовали бы за это.
+  CommentOverPrivateFunction:
+    active: false
+  CommentOverPrivateProperty:
+    active: false
+
+  DeprecatedBlockTag:
+    active: true
+
+  OutdatedDocumentation:
+    active: false
+
+  UndocumentedPublicClass:
+    active: false
+
+  UndocumentedPublicFunction:
+    active: false
+
+# ---------------------------------------------------------------------------
+# Корутины
+# ---------------------------------------------------------------------------
+coroutines:
+  GlobalScopeUsage:
+    # Отключено: :app намеренно держит @ApplicationScope — CoroutineScope с
+    # временем жизни процесса для жизненного цикла WebSocket-сессии и показа
+    # админ-рассылок. Это не GlobalScope, но правило видит обращение к
+    # глобальной области видимости в тестах.
+    active: false
+
+  RedundantSuspendModifier:
+    active: true
+
+  SuspendFunWithCoroutineScopeReceiver:
+    active: true
+
+  SleepInsteadOfDelay:
+    active: true

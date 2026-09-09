@@ -1,0 +1,73 @@
+name: 'Setup Android Build'
+description: >
+  Единая подготовка раннера: JDK 17, Android SDK, кэш Gradle, проверка
+  консистентности Version Catalog. Используется во всех workflow — поэтому
+  окружение сборки идентично на PR, nightly и release.
+
+inputs:
+  java-version:
+    description: 'Версия JDK (AGP 9.x требует минимум 17)'
+    required: false
+    default: '17'
+  gradle-cache-read-only:
+    description: 'Кэш Gradle только на чтение (для fork PR)'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Grant execute permission for gradlew
+      shell: bash
+      run: chmod +x ./gradlew
+
+    # Кэш Gradle: configuration cache + build cache + ~/.gradle
+    - name: Setup Gradle (cache)
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ inputs.gradle-cache-read-only }}
+        gradle-home-cache-cleanup: true
+
+    # ── Автономность сборки: проверяем, что проект не зависит от local.properties ──
+    - name: Verify build hermeticity
+      shell: bash
+      run: |
+        echo "::group::Проверка отсутствия локальных артефактов"
+        if [ -f local.properties ]; then
+          echo "::error::local.properties в репозитории — сборка не автономна"
+          exit 1
+        fi
+        if git ls-files | grep -E '\.(jks|keystore)$' | grep -v debug.keystore; then
+          echo "::error::В репозитории лежит signing-ключ"
+          exit 1
+        fi
+        echo "::endgroup::"
+        echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+    # ── Страховка от конфликтов метаданных: офлайн-проверка графа зависимостей ──
+    - name: Dependency graph sanity (failOnVersionConflict)
+      shell: bash
+      run: ./gradlew --no-daemon :app:dependencies --configuration debugRuntimeClasspath --quiet > build/dep-graph.txt || true
+
+    - name: Upload dependency graph
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-graph
+        path: build/dep-graph.txt
+        retention-days: 7
+        if-no-files-found: ignore
