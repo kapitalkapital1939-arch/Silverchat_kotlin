@@ -6,14 +6,14 @@
  * ЕДИНАЯ ТОЧКА КОНФИГУРАЦИИ СБОРКИ.
  *
  * Принципы (борьба с «gradle-конфликтами метаданных»):
- *  1. Все репозитории объявлены ОДИН раз здесь и в build-logic — в модулях
- *     блоков `repositories {}` быть не должно вообще.
- *  2. `dependencyResolutionManagement` с `FAIL_ON_PROJECT_REPOS` физически
- *     запрещает модулю объявлять свой репозиторий -> конфликт версий невозможен.
- *  3. Все версии — только в gradle/libs.versions.toml (Version Catalog).
- *  4. build-logic включён как includeBuild ДО основного графа модулей,
- *     поэтому convention-плагины резолвятся из своего изолированного
- *     репозитория и не тянут транзитивные версии Kotlin в app-модуль.
+ *   1. Все репозитории объявлены ОДИН раз здесь и в build-logic — в модулях
+ *      блоков `repositories {}` быть не должно вообще.
+ *   2. `dependencyResolutionManagement` с `FAIL_ON_PROJECT_REPOS` физически
+ *      запрещает модулю объявлять свой репозиторий -> конфликт версий невозможен.
+ *   3. Все версии — только в gradle/libs.versions.toml (Version Catalog).
+ *   4. build-logic включён как includeBuild ДО основного графа модулей,
+ *      поэтому convention-плагины резолвятся из своего изолированного
+ *      репозитория и не тянут транзитивные версии Kotlin в app-модуль.
  * ---------------------------------------------------------------------------
  */
 
@@ -51,12 +51,6 @@ dependencyResolutionManagement {
             content { includeGroupByRegex("io\\.getstream.*") }
         }
     }
-
-    versionCatalogs {
-        create("libs") {
-            from(files("gradle/libs.versions.toml"))
-        }
-    }
 }
 
 rootProject.name = "SilverChat"
@@ -64,19 +58,19 @@ rootProject.name = "SilverChat"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 // ── CORE ────────────────────────────────────────────────────────────────────
-include(":core:model")            // DTO / доменные модели, общие для всех слоёв
-include(":core:common")           // Result, DispatcherProvider, логи, утилиты
+include(":core:model")          // DTO / доменные модели, общие для всех слоёв
+include(":core:common")         // Result, DispatcherProvider, логи, утилиты
 include(":core:designsystem")     // Compose-темы, glassmorphism, навигация, UI-кит
-include(":core:domain")           // UseCase'ы + интерфейсы репозиториев (чистый Kotlin)
-include(":core:data")             // Реализации репозиториев: сеть + Room-кэш + WebSocket
-include(":core:network")          // REST (Retrofit) + WebSocket-клиент + протокол событий
-include(":core:database")         // Room: офлайн-кэш чатов, сообщений, черновиков
-include(":core:datastore")        // Настройки (DataStore) + EncryptedSharedPreferences
-include(":core:security")         // EncryptedSharedPreferences, Keystore, биометрия
-include(":core:webrtc")           // PeerConnection, EGL, сигналинг звонков
-include(":core:media")            // Голосовые/видео/«кружки», сжатие, загрузка
+include(":core:domain")         // UseCase'ы + интерфейсы репозиториев (чистый Kotlin)
+include(":core:data")           // Реализации репозиториев: сеть + Room-кэш + WebSocket
+include(":core:network")        // REST (Retrofit) + WebSocket-клиент + протокол событий
+include(":core:database")       // Room: офлайн-кэш чатов, сообщений, черновиков
+include(":core:datastore")      // Настройки (DataStore) + EncryptedSharedPreferences
+include(":core:security")       // EncryptedSharedPreferences, Keystore, биометрия
+include(":core:webrtc")         // PeerConnection, EGL, сигналинг звонков
+include(":core:media")          // Голосовые/видео/«кружки», сжатие, загрузка
 include(":core:notifications")    // FCM, каналы уведомлений, входящий звонок
-include(":core:testing")          // Test-двойники, MainDispatcherRule, fake-репозитории
+include(":core:testing")         // Test-двойники, MainDispatcherRule, fake-репозитории
 
 // ── FEATURES ────────────────────────────────────────────────────────────────
 include(":feature:auth")          // Вход по номеру, OTP, регистрация
