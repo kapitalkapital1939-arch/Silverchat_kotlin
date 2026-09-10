@@ -15,7 +15,7 @@
 agp                     = "9.4.0"      # AGP 9.4.0 (Sep 2026): Gradle >= 9.6.0, JDK 17, build-tools 36
 gradle                  = "9.6.0"
 kotlin                  = "2.3.21"     # версия org.jetbrains.kotlin.plugin.compose == версии Kotlin
-ksp                     = "2.3.7"  # формат: <kotlin>-<ksp>. Держать синхронно с kotlin!
+ksp                     = "2.3.21-1.0.31"  # формат: <kotlin>-<ksp>. Держать синхронно с kotlin!
 hilt                    = "2.57.2"
 kover                   = "0.9.1"
 
