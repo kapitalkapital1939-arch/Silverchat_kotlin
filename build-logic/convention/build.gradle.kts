@@ -65,5 +65,10 @@ gradlePlugin {
             id = "silverchat.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
         }
+        register("quality") {
+        id = "silverchat.quality"
+        implementationClass = "Silverchat_quality_gradle" 
+    }
+        }
     }
 }
