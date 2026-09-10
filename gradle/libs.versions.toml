@@ -213,7 +213,7 @@ ktlint                   = { id = "org.jlleitschuh.gradle.ktlint", version.ref =
 # --- Convention-плагины из build-logic ------------------------------------------------------------
 silverchat-android-application = { id = "silverchat.android.application", version = "unspecified" }
 silverchat-android-library     = { id = "silverchat.android.library", version = "unspecified" }
-silverchat-android-compose     = { id = "silverchat.android.compose", version.ref = "unspecified" }
+silverchat-android-compose     = { id = "silverchat.android.compose", version = "unspecified" }
 silverchat-android-feature     = { id = "silverchat.android.feature", version = "unspecified" }
 silverchat-android-hilt        = { id = "silverchat.android.hilt", version = "unspecified" }
 silverchat-android-room        = { id = "silverchat.android.room", version = "unspecified" }
