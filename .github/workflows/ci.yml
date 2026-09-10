@@ -49,7 +49,7 @@ jobs:
         run: |
           # Запрет строчных версий в build-скриптах модулей — только libs.*
           if grep -rnE '"[0-9]+\.[0-9]+\.[0-9]+[^"]*"' --include=build.gradle.kts app core feature | \
-             grep -v 'libs.versions.toml'; then
+              grep -v 'libs.versions.toml'; then
             echo "::error::Найдена хардкод-версия в build.gradle.kts. Используйте Version Catalog."
             exit 1
           fi
