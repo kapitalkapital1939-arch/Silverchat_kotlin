@@ -23,8 +23,8 @@
  */
 
 plugins {
-    id("dev.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 detekt {
