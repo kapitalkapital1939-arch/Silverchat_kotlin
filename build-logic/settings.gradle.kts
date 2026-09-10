@@ -1,29 +1,69 @@
-/*
- * build-logic — изолированный композитный билд с convention-плагинами.
- *
- * Зачем: каждый модуль (их 20+) должен получать ОДИНАКОВЫЕ compileSdk, Java/Kotlin
- * target, Compose-конфигурацию, Hilt, R8-правила. Если это копипастить по
- * build.gradle.kts — версии разъезжаются и Gradle начинает резолвить
- * несколько kotlin-stdlib / compose-compiler одновременно (те самые
- * «конфликты метаданных»). Convention-плагины убирают дублирование полностью.
- */
+plugins {
+    `kotlin-dsl`
+}
 
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
+group = "com.silverchat.buildlogic"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.addAll("-Xjvm-default=all")
     }
+}
 
-    versionCatalogs {
-        // Пробрасываем общий каталог, чтобы convention-плагины брали версии
-        // из того же libs.versions.toml, что и модули.
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
+dependencies {
+    compileOnly(libs.agp.plugin)
+    compileOnly(libs.kotlin.gradle.plugin)
+    compileOnly(libs.kotlin.compose.plugin)
+    compileOnly(libs.ksp.gradle.plugin)
+    compileOnly(libs.hilt.gradle.plugin)
+
+    implementation(libs.detekt.plugin)
+    implementation(libs.ktlint.plugin)
+}
+
+gradlePlugin {
+    plugins {
+        register("androidApplication") {
+            id = "silverchat.android.application"
+            implementationClass = "AndroidApplicationConventionPlugin"
+        }
+        register("androidLibrary") {
+            id = "silverchat.android.library"
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
+        register("androidCompose") {
+            id = "silverchat.android.compose"
+            implementationClass = "AndroidComposeConventionPlugin"
+        }
+        register("androidFeature") {
+            id = "silverchat.android.feature"
+            implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("androidHilt") {
+            id = "silverchat.android.hilt"
+            implementationClass = "AndroidHiltConventionPlugin"
+        }
+        register("androidRoom") {
+            id = "silverchat.android.room"
+            implementationClass = "AndroidRoomConventionPlugin"
+        }
+        register("jvmLibrary") {
+            id = "silverchat.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
         }
     }
 }
 
-rootProject.name = "build-logic"
-
-include(":convention")
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+    }
+}
