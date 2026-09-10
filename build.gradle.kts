@@ -31,11 +31,11 @@ allprojects {
         resolutionStrategy {
             // Одна версия Kotlin-стандарта на весь проект — иначе KSP/Hilt/Room
             // притаскивают stdlib другой версии и сборка падает на метаданных.
-            force(libs.kotlin.stdlib.get().toString())
-            force(libs.kotlin.stdlib.jdk8.get().toString())
-            force(libs.kotlinx.coroutines.core.get().toString())
-            force(libs.kotlinx.coroutines.android.get().toString())
-            force(libs.kotlinx.serialization.json.get().toString())
+    force("org.jetbrains.kotlin:kotlin-stdlib")
+    force("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    force("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    force("org.jetbrains.kotlinx:kotlinx-coroutines-android")
+    force("org.jetbrains.kotlinx:kotlinx-serialization-json")
 
             preferProjectModules()
 
