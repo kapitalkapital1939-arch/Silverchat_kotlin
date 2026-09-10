@@ -1,6 +1,6 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm")
+    kotlin("jvm") version libs.versions.kotlin.version.required
 }
 
 group = "com.silverchat.buildlogic"
