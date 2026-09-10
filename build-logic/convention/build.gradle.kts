@@ -18,10 +18,10 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.agp.plugin)
+    compileOnly("com.android.tools.build:gradle:8.5.0") // или твоя версия AGP из каталога
+    compileOnly("com.google.devtools.ksp:symbol-processing-gradle-plugin:2.3.0-1.0.24") // или версия KSP
     compileOnly(libs.kotlin.gradle.plugin)
     compileOnly(libs.kotlin.compose.plugin)
-    compileOnly(libs.ksp.gradle.plugin)
     compileOnly(libs.hilt.gradle.plugin)
 
     implementation(libs.detekt.plugin)
