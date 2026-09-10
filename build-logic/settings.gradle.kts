@@ -1,62 +1,17 @@
-plugins {
-    `kotlin-dsl`
-}
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
 
-group = "com.silverchat.buildlogic"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-kotlin {
-    jvmToolchain(17)
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        freeCompilerArgs.addAll("-Xjvm-default=all")
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
     }
 }
 
-dependencies {
-    compileOnly(libs.agp.plugin)
-    compileOnly(libs.kotlin.gradle.plugin)
-    compileOnly(libs.kotlin.compose.plugin)
-    compileOnly(libs.ksp.gradle.plugin)
-    compileOnly(libs.hilt.gradle.plugin)
+rootProject.name = "build-logic"
 
-    implementation(libs.detekt.plugin)
-    implementation(libs.ktlint.plugin)
-}
-
-gradlePlugin {
-    plugins {
-        register("androidApplication") {
-            id = "silverchat.android.application"
-            implementationClass = "AndroidApplicationConventionPlugin"
-        }
-        register("androidLibrary") {
-            id = "silverchat.android.library"
-            implementationClass = "AndroidLibraryConventionPlugin"
-        }
-        register("androidCompose") {
-            id = "silverchat.android.compose"
-            implementationClass = "AndroidComposeConventionPlugin"
-        }
-        register("androidFeature") {
-            id = "silverchat.android.feature"
-            implementationClass = "AndroidFeatureConventionPlugin"
-        }
-        register("androidHilt") {
-            id = "silverchat.android.hilt"
-            implementationClass = "AndroidHiltConventionPlugin"
-        }
-        register("androidRoom") {
-            id = "silverchat.android.room"
-            implementationClass = "AndroidRoomConventionPlugin"
-        }
-        register("jvmLibrary") {
-            id = "silverchat.jvm.library"
-            implementationClass = "JvmLibraryConventionPlugin"
-        }
-    }
-}
+include(":convention")
