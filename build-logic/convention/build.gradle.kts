@@ -1,6 +1,5 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version libs.versions.kotlin.get()
 }
 
 group = "com.silverchat.buildlogic"
@@ -19,20 +18,12 @@ kotlin {
 }
 
 dependencies {
-    // Классы плагинов нужны на этапе КОМПИЛЯЦИИ convention-плагинов.
-    // В рантайме они берутся из buildscript-classpath корневого build.gradle.kts,
-    // где все плагины объявлены с `apply false`. Версии — из единого каталога.
     compileOnly(libs.agp.plugin)
     compileOnly(libs.kotlin.gradle.plugin)
     compileOnly(libs.kotlin.compose.plugin)
     compileOnly(libs.ksp.gradle.plugin)
     compileOnly(libs.hilt.gradle.plugin)
 
-    // Маркеры ktlint/detekt нужны в РАНТАЙМЕ build-logic: скриптовый плагин
-    // silverchat.quality.gradle.kts применяет их сам и получает от Gradle
-    // type-safe accessors для блоков `detekt { }` и `ktlint { }`.
-    // В корневом build.gradle.kts эти плагины не объявлены — иначе один и тот
-    // же маркер оказался бы в двух classpath, и Gradle сообщил бы о конфликте.
     implementation(libs.detekt.plugin)
     implementation(libs.ktlint.plugin)
 }
@@ -67,9 +58,12 @@ gradlePlugin {
             id = "silverchat.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
         }
-        register("quality") {
-        id = "silverchat.quality"
-        implementationClass = "Silverchat_quality_gradle" 
     }
-        }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
     }
+}
