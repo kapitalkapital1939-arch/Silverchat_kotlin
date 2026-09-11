@@ -186,14 +186,21 @@ jobs:
       - name: Build debug APK
         run: |
           chmod +x gradlew
-          ./gradlew clean assembleDebug --no-configuration-cache
-          echo "--- ПРОВЕРКА ПОСЛЕ СБОРКИ ---"
+          # Собираем конкретно модуль app, отключая все кеши
+          ./gradlew :app:assembleDebug --no-build-cache --no-configuration-cache --no-daemon --stacktrace
+          
+          echo "--- ПРОВЕРКА СОЗДАННЫХ ФАЙЛОВ ---"
+          # Ищем APK во всем проекте и выводим пути
           find . -name "*.apk"
+          
+          echo "--- ЕСЛИ ПУСТО, СМОТРИМ ВСЕ ЗАДАЧИ ---"
+          ./gradlew tasks --all | grep assemble || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: silverchat-debug-apk
+          # Используем максимально широкий поиск
           path: "**/*.apk"
           if-no-files-found: error
 
