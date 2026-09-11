@@ -184,8 +184,8 @@ jobs:
           fi
           find . -type f -name "*.kt" -exec sed -i 's|http://localhost:8080|https://silverchat-production.up.railway.app/|g' {} +
 
-      - name: Build release bundle
-        run: ./gradlew --stacktrace :app:bundleRelease :app:assembleRelease
+      - name: Build debug APK
+        run: ./gradlew --stacktrace assembleDebug
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
