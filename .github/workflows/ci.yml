@@ -185,17 +185,17 @@ jobs:
           find . -type f -name "*.kt" -exec sed -i 's|http://localhost:8080|https://silverchat-production.up.railway.app/|g' {} +
       - name: Build debug APK
         run: |
-          ./gradlew :app:assembleDebug --stacktrace
-          echo "--- ПОИСК APK ФАЙЛОВ ---"
+          chmod +x gradlew
+          ./gradlew clean assembleDebug --no-configuration-cache
+          echo "--- ПРОВЕРКА ПОСЛЕ СБОРКИ ---"
           find . -name "*.apk"
-          echo "------------------------"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: silverchat-debug-apk
-          path: "**/build/outputs/apk/**/*.apk"
-          retention-days: 7
+          path: "**/*.apk"
+          if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────────
   summary:
