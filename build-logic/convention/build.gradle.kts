@@ -18,7 +18,7 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(libs.android.gradle.plugin)
+    compileOnly("com.android.tools.build:gradle:8.5.2")
     compileOnly(libs.ksp.gradle.plugin)
     compileOnly(libs.kotlin.gradle.plugin)
     compileOnly(libs.kotlin.compose.plugin)
