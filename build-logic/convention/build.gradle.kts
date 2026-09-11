@@ -18,8 +18,8 @@ kotlin {
 }
 
 dependencies {
-    compileOnly("com.android.tools.build:gradle:8.5.0") // или твоя версия AGP из каталога
-    compileOnly(libs.ksp.gradle.plugin) // или версия KSP
+    compileOnly(libs.android.gradle.plugin)
+    compileOnly(libs.ksp.gradle.plugin)
     compileOnly(libs.kotlin.gradle.plugin)
     compileOnly(libs.kotlin.compose.plugin)
     compileOnly(libs.hilt.gradle.plugin)
