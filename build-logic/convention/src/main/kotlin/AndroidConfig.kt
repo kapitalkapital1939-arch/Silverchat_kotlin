@@ -85,11 +85,11 @@ internal fun Project.configureAndroid(extension: CommonExtension<*, *, *, *, *, 
 
         defaultConfig {
             minSdk = intVersion("minSdk")
-        if (isApplication) {
-            targetSdk = intVersion("targetSdk")
-        }
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
+            if (isApplication) {
+                targetSdk = intVersion("targetSdk")
+            }
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            vectorDrawables.useSupportLibrary = true
 
             /* Конфигурация окружения объявлена ЗДЕСЬ, а не в отдельных модулях.
              *
