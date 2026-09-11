@@ -21,7 +21,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
         pluginManager.apply("org.jetbrains.kotlin.jvm")
 
         // ktlint + detekt: единые правила стиля и анализа для всех модулей
-        pluginManager.apply("silverchat.quality")
+        // pluginManager.apply("silverchat.quality")
         pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
 
         extensions.configure<JavaPluginExtension> {
