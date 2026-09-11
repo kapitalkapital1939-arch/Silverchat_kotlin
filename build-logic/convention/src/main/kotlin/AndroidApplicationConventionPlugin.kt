@@ -12,7 +12,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         pluginManager.apply("com.android.application")
 
         // ktlint + detekt: единые правила стиля и анализа для всех модулей
-        pluginManager.apply("silverchat.quality")
+       // pluginManager.apply("silverchat.quality")
         // См. gradle.properties: android.builtInKotlin=false — Kotlin-плагин
         // применяется явно и ОДИНАКОВО во всех модулях.
         pluginManager.apply("org.jetbrains.kotlin.android")
