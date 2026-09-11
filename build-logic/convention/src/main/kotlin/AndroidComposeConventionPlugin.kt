@@ -49,10 +49,10 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
             val reportsEnabled = providers
                 .gradleProperty("silverchat.compose.reports")
                 .orNull == "true"
-            includeMetrics.set(reportsEnabled)
-            includeReportCategories.set(reportsEnabled)
-            metricsOutputDirectory.set(layout.buildDirectory.dir("compose-metrics"))
-            reportsOutputDirectory.set(layout.buildDirectory.dir("compose-reports"))
+            if (reportsEnabled) {
+                metricsDestination.set(layout.buildDirectory.dir("compose-metrics"))
+                reportsDestination.set(layout.buildDirectory.dir("compose-reports"))
+            }
         }
 
         dependencies {
