@@ -183,16 +183,19 @@ jobs:
             echo "CERT_PINNING_ENABLED=false" >> "$GITHUB_ENV"
           fi
           find . -type f -name "*.kt" -exec sed -i 's|http://localhost:8080|https://silverchat-production.up.railway.app/|g' {} +
-
       - name: Build debug APK
-        run: ./gradlew --stacktrace assembleDebug
+        run: |
+          ./gradlew :app:assembleDebug --stacktrace
+          echo "--- ПОИСК APK ФАЙЛОВ ---"
+          find . -name "*.apk"
+          echo "------------------------"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: silverchat-release-${{ github.sha }}
-          path: "**/*.apk"
-          retention-days: 30
+          name: silverchat-debug-apk
+          path: "**/build/outputs/apk/**/*.apk"
+          retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
   summary:
