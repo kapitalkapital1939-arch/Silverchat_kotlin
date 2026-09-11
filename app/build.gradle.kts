@@ -70,7 +70,7 @@ dependencies {
     /* ── Платформа ─────────────────────────────────────────────────────── */
     implementation(libs.androidx.core.ktx)
     // SplashScreen -> Compose без «белого кадра» между иконкой и первым экраном
-    implementation(libs.androidx.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
