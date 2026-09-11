@@ -85,8 +85,10 @@ internal fun Project.configureAndroid(extension: CommonExtension<*, *, *, *, *, 
 
         defaultConfig {
             minSdk = intVersion("minSdk")
-            if (isApplication) {
-                targetSdk = intVersion("targetSdk")
+            val target = intVersion("targetSdk")
+            when (extension) {
+                is com.android.build.api.dsl.LibraryExtension -> extension.defaultConfig.targetSdk = target
+                is com.android.build.api.dsl.ApplicationExtension -> extension.defaultConfig.targetSdk = target
             }
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
             vectorDrawables.useSupportLibrary = true
