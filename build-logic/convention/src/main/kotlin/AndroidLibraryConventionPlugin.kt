@@ -17,7 +17,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         pluginManager.apply("org.jetbrains.kotlin.android")
 
         // ktlint + detekt: единые правила стиля и анализа для всех модулей
-        pluginManager.apply("silverchat.quality")
+        // pluginManager.apply("silverchat.quality")
 
         extensions.configure<LibraryExtension> {
             configureLibrary(this, path)
