@@ -185,7 +185,7 @@ jobs:
       - name: Build debug APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug 
 
       - name: Show APK location
         run: find . -name "*.apk"
