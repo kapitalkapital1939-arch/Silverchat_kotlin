@@ -182,27 +182,19 @@ jobs:
             echo "::warning::CERT_PINS не заданы — release собирается БЕЗ пиннинга сертификатов"
             echo "CERT_PINNING_ENABLED=false" >> "$GITHUB_ENV"
           fi
-          find . -type f -name "*.kt" -exec sed -i 's|http://localhost:8080|https://silverchat-production.up.railway.app/|g' {} +
       - name: Build debug APK
         run: |
           chmod +x gradlew
-          # Собираем конкретно модуль app, отключая все кеши
-          ./gradlew :app:assembleDebug --no-build-cache --no-configuration-cache --no-daemon --stacktrace
-          
-          echo "--- ПРОВЕРКА СОЗДАННЫХ ФАЙЛОВ ---"
-          # Ищем APK во всем проекте и выводим пути
-          find . -name "*.apk"
-          
-          echo "--- ЕСЛИ ПУСТО, СМОТРИМ ВСЕ ЗАДАЧИ ---"
-          ./gradlew tasks --all | grep assemble || true
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Show APK location
+        run: find . -name "*.apk"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: silverchat-debug-apk
-          # Используем максимально широкий поиск
           path: "**/*.apk"
-          if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────────
   summary:
