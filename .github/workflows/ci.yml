@@ -182,17 +182,18 @@ jobs:
             echo "::warning::CERT_PINS не заданы — release собирается БЕЗ пиннинга сертификатов"
             echo "CERT_PINNING_ENABLED=false" >> "$GITHUB_ENV"
           fi
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-configuration-cache
 
       - name: Show APK location
-        run: find . -name "*.apk"
+        run: 'find . -name "*.apk"'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: silverchat-debug-apk
-          path: "**/*.apk"
+          name: silverchat-release-apk
+          path: "app/build/outputs/apk/release/*.apk"
+
 
   # ──────────────────────────────────────────────────────────────────────────
   summary:
