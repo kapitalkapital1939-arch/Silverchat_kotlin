@@ -153,46 +153,21 @@ jobs:
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
 
-      - name: Inject signing config (optional)
-        env:
-          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-          CERT_PINS: ${{ secrets.CERT_PINS }}
-        run: |
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > release.keystore
-            {
-              echo "silverchat.keystorePath=release.keystore"
-              echo "silverchat.keystorePassword=$KEYSTORE_PASSWORD"
-              echo "silverchat.keyAlias=$KEY_ALIAS"
-              echo "silverchat.keyPassword=$KEY_PASSWORD"
-            } >> gradle.properties
-            echo "SIGNING_ENABLED=true" >> "$GITHUB_ENV"
-          else
-            echo "::warning::Секреты подписи не заданы — собираем unsigned release"
-            echo "SIGNING_ENABLED=false" >> "$GITHUB_ENV"
-          fi
-
-          if [ -n "$CERT_PINS" ]; then
-            echo "silverchat.certPins=$CERT_PINS" >> gradle.properties
-            echo "CERT_PINNING_ENABLED=true" >> "$GITHUB_ENV"
-          else
-            echo "::warning::CERT_PINS не заданы — release собирается БЕЗ пиннинга сертификатов"
-            echo "CERT_PINNING_ENABLED=false" >> "$GITHUB_ENV"
-          fi
-
-      - name: Build Release APK
+      - name: Build Debug and Release APKs
         run: |
           chmod +x gradlew
-          ./gradlew clean
-          ./gradlew :app:assembleRelease --no-build-cache --no-configuration-cache --isolated-projects=false
+          ./gradlew assembleDebug assembleRelease --no-configuration-cache
 
       - name: Show APK location
         run: 'find . -name "*.apk"'
 
-      - name: Upload artifacts
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: silverchat-debug-apk
+          path: "app/build/outputs/apk/debug/*.apk"
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: silverchat-release-apk
