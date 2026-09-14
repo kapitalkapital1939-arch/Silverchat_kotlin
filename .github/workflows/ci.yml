@@ -153,10 +153,11 @@ jobs:
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
 
+      # ИСПРАВЛЕННЫЙ ШАГ: 
+      # Команды записаны в одну строку, чтобы избежать багов с переносом строк CRLF/LF.
+      # Добавлено явное обращение к модулю :app: 
       - name: Build Debug and Release APKs
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug assembleRelease --no-configuration-cache
+        run: chmod +x gradlew && ./gradlew :app:assembleDebug :app:assembleRelease --no-configuration-cache
 
       - name: Show APK location
         run: 'find . -name "*.apk"'
