@@ -132,6 +132,7 @@ jobs:
           if-no-files-found: ignore
 
   # ──────────────────────────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────────────────────────────
   assemble-release:
     name: Release APK/AAB (unsigned if no secrets)
     runs-on: ubuntu-latest
@@ -153,11 +154,8 @@ jobs:
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
 
-      # ИСПРАВЛЕННЫЙ ШАГ: 
-      # Команды записаны в одну строку, чтобы избежать багов с переносом строк CRLF/LF.
-      # Добавлено явное обращение к модулю :app: 
       - name: Build Debug and Release APKs
-        run: chmod +x gradlew && ./gradlew :app:assembleDebug :app:assembleRelease --no-configuration-cache
+        run: ./gradlew :app:assembleDebug :app:assembleRelease --stacktrace
 
       - name: Show APK location
         run: 'find . -name "*.apk"'
