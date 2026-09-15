@@ -42,6 +42,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
 
@@ -108,6 +112,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
 
@@ -151,9 +159,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Setup Android build environment
         uses: ./.github/actions/setup-android-build
-
+        
       - name: Build Debug and Release APKs
         run: gradle :app:assembleDebug :app:assembleRelease --stacktrace
 
