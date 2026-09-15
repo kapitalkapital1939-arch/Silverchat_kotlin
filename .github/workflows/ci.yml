@@ -35,19 +35,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          log-accepted-android-sdk-licenses: false
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Ktlint
-        run: ./gradlew ktlintCheck || echo "Ktlint failed but continuing"
+        run: ./gradlew ktlintCheck || echo "Ktlint failed"
 
       - name: Android Lint
-        run: ./gradlew lintDebug || echo "Lint failed but continuing"
+        run: ./gradlew lintDebug || echo "Lint failed"
 
   build:
     name: Build & unit tests
@@ -67,13 +65,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Assemble & test
+      - name: Assemble
         run: |
           case "${{ matrix.module-group }}" in
             core)    TARGETS=":core" ;;
@@ -97,13 +95,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build Debug and Release APKs
+      - name: Build APKs
         run: gradle :app:assembleDebug :app:assembleRelease --stacktrace
 
       - name: Show APK location
@@ -128,4 +126,4 @@ jobs:
     if: always()
     steps:
       - name: CI Done
-        run: echo "✅ Процесс завершен"
+        run: echo "✅ Done"
