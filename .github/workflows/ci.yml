@@ -155,9 +155,7 @@ jobs:
         uses: ./.github/actions/setup-android-build
 
       - name: Build Debug and Release APKs
-        run: |
-          set -x
-          bash gradlew :app:assembleDebug :app:assembleRelease --stacktrace
+        run: gradle :app:assembleDebug :app:assembleRelease --stacktrace
 
       - name: Show APK location
         run: 'find . -name "*.apk"'
